@@ -1,0 +1,105 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:gui="clr-namespace:CNLab3_Messenger.GUI">
+    <Style x:Key="MsgBorderStyle" TargetType="{x:Type Border}">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="10 6"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsMyMessage}" Value="false">
+                <Setter Property="Margin" Value="6 6 80 6"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="Background" Value="AliceBlue"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsMyMessage}" Value="true">
+                <Setter Property="Margin" Value="80 6 6 6"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="Background" Value="#c7e5ff"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MsgTimeStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="Gray"/>
+        <Setter Property="FontSize" Value="8"/>
+        <Setter Property="Text" Value="{Binding CreationTimeStrRepr, Mode=OneTime}"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsMyMessage}" Value="false">
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsMyMessage}" Value="true">
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <DataTemplate DataType="{x:Type gui:TextMsgViewModel}">
+        <Border Style="{StaticResource MsgBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" TextWrapping="Wrap" IsReadOnly="True" Background="Transparent"
+                         BorderThickness="0" Text="{Binding Text}"/>
+                <TextBlock Grid.Row="1" Style="{StaticResource MsgTimeStyle}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type gui:ImageMsgViewModel}">
+        <Border Style="{StaticResource MsgBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="{Binding FileName}"/>
+                <Image Grid.Row="1" MaxHeight="200px" Source="{Binding Image, Mode=OneWay}" />
+                <TextBlock Grid.Row="2" Style="{StaticResource MsgTimeStyle}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+ReceiveFileMsgViewModel}">
+        <Border Style="{StaticResource MsgBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding FileName}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding FileSizeStrRepr, Mode=OneWay}"/>
+                <ContentControl Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Content="{Binding DispatchStatus}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource MsgTimeStyle}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+SendFileMsgViewModel}">
+        <Border Style="{StaticResource MsgBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding FileName}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding FileSizeStrRepr, Mode=OneWay}"/>
+                <ContentControl Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Content="{Binding DispatchStatus}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource MsgTimeStyle}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>
