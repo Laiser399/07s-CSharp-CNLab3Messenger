@@ -35,19 +35,25 @@ namespace CNLab3_Messenger.GUI
                 }
                 else
                 {
-                    BitmapImage image = new BitmapImage();
-                    using (MemoryStream stream = new MemoryStream(_imageData))
+                    try
                     {
-                        // TODO exc
-                        image.BeginInit();
-                        image.UriSource = null;
-                        image.StreamSource = stream;
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                        image.EndInit();
+                        BitmapImage image = new BitmapImage();
+                        using (MemoryStream stream = new MemoryStream(_imageData))
+                        {
+                            image.BeginInit();
+                            image.UriSource = null;
+                            image.StreamSource = stream;
+                            image.CacheOption = BitmapCacheOption.OnLoad;
+                            image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                            image.EndInit();
+                        }
+                        image.Freeze();
+                        _image = image;
                     }
-                    image.Freeze();
-                    _image = image;
+                    catch
+                    {
+                        _image = null;
+                    }
                 }
                 
                 NotifyPropChanged(nameof(ImageData), nameof(Image));
@@ -57,6 +63,5 @@ namespace CNLab3_Messenger.GUI
         private BitmapImage _image;
         public BitmapImage Image => _image;
 
-        // TODO image
     }
 }

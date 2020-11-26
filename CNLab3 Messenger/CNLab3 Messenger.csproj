@@ -98,6 +98,7 @@
     <Compile Include="GUI\MainWindow\Messages\FileMessages\ReceiveFileMsgViewModel.cs" />
     <Compile Include="GUI\MainWindow\Messages\FileMessages\SendFileMsgViewModel.cs" />
     <Compile Include="GUI\MainWindow\Messages\TextMsgViewModel.cs" />
+    <Compile Include="SilentCryptoStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GUI\MainWindow\MainWindowViewModel.cs" />

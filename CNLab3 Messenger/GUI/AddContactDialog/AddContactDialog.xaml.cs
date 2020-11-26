@@ -23,11 +23,7 @@ namespace CNLab3_Messenger.GUI
         public AddContactDialog()
         {
             InitializeComponent();
-
-            // TODO delete
-            IpAddress = IPAddress.Parse("77.37.245.90");
-            Port = 60400;
-
+            
             _viewModel.IpAddress = IpAddress.ToString();
             _viewModel.Port = Port.ToString();
             DataContext = _viewModel;

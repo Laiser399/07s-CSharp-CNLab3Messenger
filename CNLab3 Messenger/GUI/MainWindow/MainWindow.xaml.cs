@@ -19,10 +19,23 @@ namespace CNLab3_Messenger.GUI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainWindowViewModel _viewModel;
+
         public MainWindow(int port)
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel(port);
+            _viewModel = new MainWindowViewModel(port);
+            DataContext = _viewModel;
+        }
+
+        private void InputKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                ICommand cmd = _viewModel.SendMessageCmd;
+                if (cmd.CanExecute(null))
+                    cmd.Execute(null);
+            }
         }
     }
 }

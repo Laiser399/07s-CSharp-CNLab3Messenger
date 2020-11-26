@@ -20,9 +20,11 @@ namespace CNLab3_Messenger
             do
             {
                 if (token.IsCancellationRequested)
-                    break;
+                    throw new TaskCanceledException();
 
                 int inBuf = await source.ReadAsync(buffer, 0, Math.Min(bufferSize, toRead));
+                if (inBuf == 0)
+                    throw new EndOfStreamException("End of stream achieved, but file not read.");
                 await destination.WriteAsync(buffer, 0, inBuf);
                 toRead -= inBuf;
 
