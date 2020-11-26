@@ -23,13 +23,11 @@ namespace CNLab3_Messenger.GUI
             #endregion
 
             private MainWindowViewModel _owner;
-            public string AccessCode { get; private set; }
             private CancellationTokenSource _cts = new CancellationTokenSource();
 
-            public ReceiveFileMsgViewModel(MainWindowViewModel owner, string accessCode)
+            public ReceiveFileMsgViewModel(MainWindowViewModel owner, string accessCode) : base(accessCode)
             {
                 _owner = owner;
-                AccessCode = accessCode;
                 DispatchStatus = new WaitDispatchStatus(this);
             }
 
@@ -37,14 +35,43 @@ namespace CNLab3_Messenger.GUI
             {
                 if (DispatchStatus is WaitDispatchStatus)
                 {
-                    DispatchStatus = new InProgressDispatchStatus(this);
-                    _owner.ReceiveFileAsync(this, _cts.Token);
+                    _owner.ReceiveFileAsync(this, _cts.Token, progress =>
+                    {
+                        if (DispatchStatus is InProgressDispatchStatus status)
+                            status.Progress = progress;
+                    });
                 }
             }
 
             protected override void CancelFileDispatch()
             {
                 _cts.Cancel();
+            }
+
+            public void OnStarted()
+            {
+                DispatchStatus = new InProgressDispatchStatus(this);
+            }
+
+            public void OnCanceled()
+            {
+                DispatchStatus = new DoneDispatchStatus { Text = "Canceled" };
+            }
+
+            public void OnDoneSuccessfully()
+            {
+                DispatchStatus = new DoneDispatchStatus
+                {
+                    Text = "Done"
+                };
+            }
+
+            public void OnDoneWithError()
+            {
+                DispatchStatus = new DoneDispatchStatus
+                {
+                    Text = "Error"
+                };
             }
         }
     }

@@ -64,7 +64,7 @@ namespace CNLab3_Messenger.GUI
 
                 private RelayCommand _cancelSendingCmd;
                 public RelayCommand CancelSendingCmd
-                    => _cancelSendingCmd ?? (_cancelSendingCmd = new RelayCommand(_ => _owner.BlockFileDispatch()));
+                    => _cancelSendingCmd ?? (_cancelSendingCmd = new RelayCommand(_ => _owner.BlockFileAccess()));
 
                 private SendFileMsgViewModel _owner;
 

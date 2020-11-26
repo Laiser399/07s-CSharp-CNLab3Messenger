@@ -65,6 +65,13 @@ namespace CNLab3_Messenger.GUI
 
             #endregion
 
+            public string AccessCode { get; private set; }
+
+            protected FileMsgViewModel(string accessCode)
+            {
+                AccessCode = accessCode;
+            }
+
             protected abstract void CancelFileDispatch();
 
         }

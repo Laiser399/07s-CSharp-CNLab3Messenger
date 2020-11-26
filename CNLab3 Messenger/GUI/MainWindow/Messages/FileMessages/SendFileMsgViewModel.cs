@@ -20,19 +20,61 @@ namespace CNLab3_Messenger.GUI
 
             #endregion
 
-            public SendFileMsgViewModel(MainWindowViewModel owner)
+            private MainWindowViewModel _owner;
+
+            public SendFileMsgViewModel(MainWindowViewModel owner, string accessCode) : base(accessCode)
             {
+                _owner = owner;
                 DispatchStatus = new WaitDispatchStatus(this);
             }
 
-            private void BlockFileDispatch()
+            private void BlockFileAccess()
             {
-                throw new NotImplementedException();
+                _owner.BlockFileAccess(AccessCode);
+                DispatchStatus = new DoneDispatchStatus
+                {
+                    Text = "Canceled"
+                };
             }
 
             protected override void CancelFileDispatch()
             {
-                throw new NotImplementedException();// TODO
+                _owner.CancelFileSending(AccessCode);
+            }
+
+            public void OnStart()
+            {
+                DispatchStatus = new InProgressDispatchStatus(this);
+            }
+
+            public void OnProgressChanged(double progress)
+            {
+                if (DispatchStatus is InProgressDispatchStatus status)
+                    status.Progress = progress;
+            }
+
+            public void OnCanceled()
+            {
+                DispatchStatus = new DoneDispatchStatus
+                {
+                    Text = "Canceled"
+                };
+            }
+
+            public void OnDoneSuccessfully()
+            {
+                DispatchStatus = new DoneDispatchStatus
+                {
+                    Text = "Done"
+                };
+            }
+
+            public void OnDoneWithError()
+            {
+                DispatchStatus = new DoneDispatchStatus
+                {
+                    Text = "Error"
+                };
             }
         }
     }
