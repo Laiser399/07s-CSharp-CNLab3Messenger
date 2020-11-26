@@ -43,8 +43,14 @@
                 <ColumnDefinition Width="180px"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Row="0" Grid.Column="0" Content="+" HorizontalAlignment="Left"
-                    Command="{Binding AddContactCmd}"/>
+            <Grid Grid.Row="0" Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Add" Command="{Binding AddContactCmd}"/>
+                <Button Grid.Column="1" Content="Remove" Command="{Binding RemoveContactCmd}"/>
+            </Grid>
             <ListBox Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Stretch"
                      ItemsSource="{Binding Contacts}" SelectedItem="{Binding SelectedContact}"/>
             <Grid Grid.Row="0" Grid.Column="1">
@@ -78,7 +84,8 @@
                             Command="{Binding SendFileCmd}"/>
                     <Button Grid.Column="1" Margin="0 0 24 0" Content="Send image"
                             Command="{Binding SendImageCmd}"/>
-                    <TextBox Grid.Column="2" Text="{Binding InputedMessage}"/>
+                    <TextBox Grid.Column="2" Text="{Binding InputedMessage, UpdateSourceTrigger=PropertyChanged}" 
+                             KeyDown="InputKeyDown"/>
                     <Button Grid.Column="3" Content="Send" Command="{Binding SendMessageCmd}"/>
                 </Grid>
             </Grid>

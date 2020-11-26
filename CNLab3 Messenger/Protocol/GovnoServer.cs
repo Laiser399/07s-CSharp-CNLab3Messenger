@@ -24,6 +24,8 @@ namespace CNLab3_Messenger.Protocol
         }
     }
 
+    class NotConnectedException : Exception { }
+
     class GovnoServer
     {
         public static readonly int MaxFileSize = 314_572_800;
@@ -35,12 +37,18 @@ namespace CNLab3_Messenger.Protocol
         public event EventHandler<TextMsgEventArgs> OnMessageReceived;
         public event EventHandler<ImageMsgEventArgs> OnImageReceived;
         public event EventHandler<FileMsgEventArgs> OnFileReceived;
+        public event EventHandler<FileEventArgs> OnStartFileSending;
+        public event EventHandler<FileSendingProgressEventArgs> OnFileSendingProgressChanged;
+        public event EventHandler<FileEventArgs> OnCanceledSending;
+        public event EventHandler<FileEventArgs> OnErrorFileSending;
 
         private TcpListener _listener;
         private IPEndPoint _serverIPEndPoint;
         private bool _isStarted = false;
         private Dictionary<IPEndPoint, GovnoCryptoData> _connected = new Dictionary<IPEndPoint, GovnoCryptoData>();
         private Dictionary<string, string> _accessCodeToFile = new Dictionary<string, string>();
+        private Dictionary<string, CancellationTokenSource> _cancellationTokens =
+            new Dictionary<string, CancellationTokenSource>();
 
         public GovnoServer(IPAddress ipAddress, int port) : this(new IPEndPoint(ipAddress, port)) { }
 
@@ -74,22 +82,26 @@ namespace CNLab3_Messenger.Protocol
 
         private async void OnClientAcceptedAsync(TcpClient client)
         {
-            using (client)
+            try
             {
-                NetworkStream stream = client.GetStream();
-
-                IPEndPoint senderIPPoint = await ReadIPPointAsync(stream);
-                bool isConnection = await ReadBooleanAsync(stream);
-
-                if (isConnection)
+                using (client)
                 {
-                    await OnConnectionAsync(senderIPPoint, stream);
-                }
-                else
-                {
-                    await OnMessageAsync(senderIPPoint, stream);
+                    NetworkStream stream = client.GetStream();
+
+                    IPEndPoint senderIPPoint = await ReadIPPointAsync(stream);
+                    bool isConnection = await ReadBooleanAsync(stream);
+
+                    if (isConnection)
+                    {
+                        await OnConnectionAsync(senderIPPoint, stream);
+                    }
+                    else
+                    {
+                        await OnMessageAsync(senderIPPoint, stream);
+                    }
                 }
             }
+            catch { }
         }
 
         private async Task OnConnectionAsync(IPEndPoint sender, NetworkStream stream)
@@ -121,7 +133,7 @@ namespace CNLab3_Messenger.Protocol
         private async Task OnMessageAsync(IPEndPoint sender, NetworkStream stream)
         {
             if (!_connected.ContainsKey(sender))
-                return;// TODO something
+                return;
 
             byte[] data = await ReadBytesWithPrefixAsync(stream);
 
@@ -160,7 +172,7 @@ namespace CNLab3_Messenger.Protocol
                     {
                         string fileName = obj.Value<string>("file_name");
                         int fileSize = obj.Value<int>("file_size");
-                        string accessCode = obj.Value<string>("access_code");// TODO
+                        string accessCode = obj.Value<string>("access_code");
                         OnFileReceived?.Invoke(this, new FileMsgEventArgs
                         {
                             SenderIPPoint = sender,
@@ -178,11 +190,41 @@ namespace CNLab3_Messenger.Protocol
                         string filePath = _accessCodeToFile[accessCode];
                         _accessCodeToFile.Remove(accessCode);
 
-                        using (CryptoStream crStream = new CryptoStream(stream,
-                            CreateEncryptor(_connected[sender]), CryptoStreamMode.Write))
-                        using (FileStream fStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                        int fileLength = (int)new FileInfo(filePath).Length;
+
+                        CancellationTokenSource cts = new CancellationTokenSource();
+                        _cancellationTokens.Add(accessCode, cts);
+                        try
                         {
-                            await fStream.CopyToAsync(crStream);
+                            using (FileStream fStream = File.OpenRead(filePath))
+                            using (CryptoStream crStream = new SilentCryptoStream(stream,
+                                CreateEncryptor(_connected[sender]), CryptoStreamMode.Write))
+                            {
+                                OnStartFileSending?.Invoke(this, new FileEventArgs { AccessCode = accessCode });
+                                await fStream.CopyToAsync(crStream, 20_000, fileLength, cts.Token, progress =>
+                                {
+                                    OnFileSendingProgressChanged?.Invoke(this, new FileSendingProgressEventArgs
+                                    {
+                                        AccessCode = accessCode,
+                                        Progress = progress
+                                    });
+                                });
+                            }
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            OnCanceledSending?.Invoke(this, new FileEventArgs { AccessCode = accessCode });
+                        }
+                        catch
+                        {
+                            OnErrorFileSending?.Invoke(this, new FileEventArgs
+                            {
+                                AccessCode = accessCode
+                            });
+                        }
+                        finally
+                        {
+                            _cancellationTokens.Remove(accessCode);
                         }
                         break;
                     }
@@ -216,10 +258,15 @@ namespace CNLab3_Messenger.Protocol
             }
         }
 
+        public void Disconnect(IPEndPoint point)
+        {
+            _connected.Remove(point);
+        }
+
         public async Task SendTextMessageAsync(IPEndPoint receiver, string message)
         {
             if (!_connected.ContainsKey(receiver))
-                throw new Exception("not connected");// TODO
+                throw new NotConnectedException();
 
             using (TcpClient client = new TcpClient(AddressFamily.InterNetwork))
             {
@@ -241,7 +288,7 @@ namespace CNLab3_Messenger.Protocol
         public async Task SendImageAsync(IPEndPoint receiver, string fileName, byte[] imageData)
         {
             if (!_connected.ContainsKey(receiver))
-                throw new Exception("not connected");// TODO
+                throw new NotConnectedException();
 
             using (TcpClient client = new TcpClient(AddressFamily.InterNetwork))
             {
@@ -264,10 +311,10 @@ namespace CNLab3_Messenger.Protocol
             }
         }
 
-        public async Task SendFileAccessAsync(IPEndPoint receiver, string filePath, int fileSize)
+        public async Task<string> SendFileAccessAsync(IPEndPoint receiver, string filePath, int fileSize)
         {
             if (!_connected.ContainsKey(receiver))
-                throw new Exception("not connected");// TODO
+                throw new NotConnectedException();
 
             using (TcpClient client = new TcpClient(AddressFamily.InterNetwork))
             {
@@ -281,12 +328,29 @@ namespace CNLab3_Messenger.Protocol
                 _accessCodeToFile.Add(accessCode, filePath);
                 byte[] data = await EncryptAsync(new JObject(new object[]
                 {
-                new JProperty("type", "file_link"),
-                new JProperty("file_name", Path.GetFileName(filePath)),
-                new JProperty("file_size", fileSize),
-                new JProperty("access_code", accessCode)
+                    new JProperty("type", "file_link"),
+                    new JProperty("file_name", Path.GetFileName(filePath)),
+                    new JProperty("file_size", fileSize),
+                    new JProperty("access_code", accessCode)
                 }), _connected[receiver]);
                 await WriteWithPrefixAsync(stream, data);
+
+                return accessCode;
+            }
+        }
+
+        public void BlockFileAccess(string accessCode)
+        {
+            if (_accessCodeToFile.ContainsKey(accessCode))
+                _accessCodeToFile.Remove(accessCode);
+        }
+
+        public void CancelFileSending(string accessCode)
+        {
+            if (_cancellationTokens.ContainsKey(accessCode))
+            {
+                _cancellationTokens[accessCode].Cancel();
+                _cancellationTokens.Remove(accessCode);
             }
         }
 
@@ -311,12 +375,14 @@ namespace CNLab3_Messenger.Protocol
             int fileSize, CancellationToken token, Action<double> progressCallback = null)
         {
             if (!_connected.ContainsKey(fileSender))
-                throw new Exception("not connected");// TODO exc
+                throw new NotConnectedException();
 
             using (TcpClient client = new TcpClient(AddressFamily.InterNetwork))
             {
                 await client.ConnectAsync(fileSender.Address, fileSender.Port);
                 NetworkStream stream = client.GetStream();
+                stream.ReadTimeout = 1000;
+                stream.WriteTimeout = 1000;
 
                 await WriteAsync(stream, _serverIPEndPoint);
                 await WriteAsync(stream, false);
@@ -328,7 +394,7 @@ namespace CNLab3_Messenger.Protocol
                 }), _connected[fileSender]);
                 await WriteWithPrefixAsync(stream, data);
 
-                using (CryptoStream crStream = new CryptoStream(stream,
+                using (CryptoStream crStream = new SilentCryptoStream(stream,
                         CreateDecryptor(_connected[fileSender]), CryptoStreamMode.Read))
                 using (FileStream fStream = File.OpenWrite(saveFilePath))
                 {

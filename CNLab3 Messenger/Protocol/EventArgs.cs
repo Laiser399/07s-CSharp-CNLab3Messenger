@@ -33,4 +33,16 @@ namespace CNLab3_Messenger.Protocol
         public string AccessCode { get; set; }
     }
 
+
+    class FileEventArgs : EventArgs
+    {
+        public string AccessCode { get; set; }
+    }
+
+    class FileSendingProgressEventArgs : FileEventArgs
+    {
+        public double Progress { get; set; }
+    }
+
+
 }

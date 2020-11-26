@@ -16,19 +16,24 @@ using System.Threading;
 
 namespace CNLab3_Messenger.GUI
 {
-    // TODO remove ports from brandmauer, router
+    // TODO GLOBAL remove ports from brandmauer, router
     public partial class MainWindowViewModel : BaseViewModel
     {
+        private int _port = 0;
+
         #region Bindings
 
         public IPAddress IPAddress => _ipAddress;
 
-        private int _port = 0;
         public int Port => _port;
 
         private RelayCommand _addContactCmd;
         public RelayCommand AddContactCmd
             => _addContactCmd ?? (_addContactCmd = new RelayCommand(_ => AddContact()));
+
+        private RelayCommand _removeContactCmd;
+        public RelayCommand RemoveContactCmd
+            => _removeContactCmd ?? (_removeContactCmd = new RelayCommand(_ => RemoveContact()));
 
         private ObservableCollection<ContactViewModel> _contacts;
         public ObservableCollection<ContactViewModel> Contacts
@@ -76,12 +81,16 @@ namespace CNLab3_Messenger.GUI
 
         private GovnoServer _server;
         private IPAddress _ipAddress;
+        private Dictionary<string, SendFileMsgViewModel> _accessCodeToSendFileMsg = 
+            new Dictionary<string, SendFileMsgViewModel>();
 
         public MainWindowViewModel(int port)
         {
             _port = port;
             InitIpAddress();
             InitServer();
+
+            MakeTest1();
         }
 
         private void InitIpAddress()
@@ -104,11 +113,18 @@ namespace CNLab3_Messenger.GUI
             _server = new GovnoServer(_ipAddress, _port);
             _server.OnConnected += (_, args) =>
             {
-                // TODO not add with connected address
-                Contacts.Add(new ContactViewModel(args.SenderIPPoint)
+                if (TryFindContact(args.SenderIPPoint, out var contact))
+                    contact.Connected = true;
+                else
                 {
-                    Connected = true
-                });
+                    contact = new ContactViewModel(args.SenderIPPoint)
+                    {
+                        Connected = true
+                    };
+                    Contacts.Add(contact);
+                    if (Contacts.Count == 1)
+                        SelectedContact = contact;
+                }
             };
             _server.OnMessageReceived += (_, args) =>
             {
@@ -144,54 +160,59 @@ namespace CNLab3_Messenger.GUI
                     });
                 }
             };
+            _server.OnStartFileSending += (_, args) =>
+            {
+                if (_accessCodeToSendFileMsg.ContainsKey(args.AccessCode))
+                {
+                    var viewModel = _accessCodeToSendFileMsg[args.AccessCode];
+                    viewModel.OnStart();
+                }
+            };
+            _server.OnFileSendingProgressChanged += (_, args) =>
+            {
+                if (_accessCodeToSendFileMsg.ContainsKey(args.AccessCode))
+                {
+                    var viewModel = _accessCodeToSendFileMsg[args.AccessCode];
+                    viewModel.OnProgressChanged(args.Progress);
+
+                    if (args.Progress >= 1)
+                    {
+                        viewModel.OnDoneSuccessfully();
+                        _accessCodeToSendFileMsg.Remove(args.AccessCode);
+                    }
+                }
+            };
+            _server.OnCanceledSending += (_, args) =>
+            {
+                if (_accessCodeToSendFileMsg.ContainsKey(args.AccessCode))
+                {
+                    var viewModel = _accessCodeToSendFileMsg[args.AccessCode];
+                    viewModel.OnCanceled();
+                    _accessCodeToSendFileMsg.Remove(args.AccessCode);
+                }
+            };
+            _server.OnErrorFileSending += (_, args) =>
+            {
+                if (_accessCodeToSendFileMsg.ContainsKey(args.AccessCode))
+                {
+                    var viewModel = _accessCodeToSendFileMsg[args.AccessCode];
+                    viewModel.OnDoneWithError();
+                }
+            };
             _server.Start();
         }
 
-        // TODO delete
-        private void MakeTest()
+        private async void MakeTest1()
         {
-            //var testContact = new ContactViewModel(IPAddress.Loopback, 60401);
-
-            //testContact.Messages.Add(new TextMsgViewModel
-            //{
-            //    IsMyMessage = true,
-            //    Text = "My message"
-            //});
-            //testContact.Messages.Add(new TextMsgViewModel
-            //{
-            //    IsMyMessage = false,
-            //    Text = "not my message halo 098 709 87 098as7d098as7 d09as87d as098 d7as09 8d7as0 9d8a7s d098as 7duas08ud has08 ds0a d78has d08as7h da0s98 dhas09 8dhas09d8hasnd8a7sdysa"
-            //});
-
-            //string imagePath = @"D:\_Google_Synchronized_\Synchronized\Картиночеки\ав\icdd.jpg";
-            //byte[] imageData = File.ReadAllBytes(imagePath);
-            //testContact.Messages.Add(new ImageMsgViewModel
-            //{
-            //    IsMyMessage = true,
-            //    FileName = "my file.jpg",
-            //    ImageData = imageData
-            //});
-            //testContact.Messages.Add(new ImageMsgViewModel
-            //{
-            //    IsMyMessage = false,
-            //    FileName = "received file.jpg"
-            //});
-
-            //testContact.Messages.Add(new SendFileMsgViewModel
-            //{
-            //    FileName = "my file.pdf",
-            //    FileSize = 2000345,
-
-            //});
-            //testContact.Messages.Add(new ReceiveFileMsgViewModel
-            //{
-            //    FileName = "another file.psd",
-            //    FileSize = 20000345
-            //});
-
-            //Contacts.Add(testContact);
-
-            //SelectedContact = testContact;
+            if (_port == 60399)
+            {
+                IPEndPoint point = new IPEndPoint(IPAddress.Parse("77.37.245.90"), 60400);
+                var contact = new ContactViewModel(point);
+                Contacts.Add(contact);
+                await _server.ConnectAsync(point);
+                contact.Connected = true;
+                SelectedContact = contact;
+            }
         }
 
         private void AddContact()
@@ -204,6 +225,22 @@ namespace CNLab3_Messenger.GUI
                 else
                     Contacts.Add(new ContactViewModel(ipAddres, port));
             }
+        }
+
+        private void RemoveContact()
+        {
+            if (SelectedContact is null)
+                return;
+
+            var result = MessageBox.Show($"Are you sure about disconnect contact with address {SelectedContact.IPEndPoint}?",
+                "?", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.No)
+                return;
+
+            var contact = SelectedContact;
+            SelectedContact = null;
+            Contacts.Remove(contact);
+            _server.Disconnect(contact.IPEndPoint);
         }
 
         private bool TryFindContact(IPAddress ipAddress, int port, out ContactViewModel result)
@@ -231,6 +268,16 @@ namespace CNLab3_Messenger.GUI
             if (SelectedContact is null)
                 return;
 
+            if (SelectedContact.Connected)
+            {
+                var result = MessageBox.Show("Selected contact connected already. Do you want to reconnect?",
+                    "?", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                    SelectedContact.Connected = false;
+                else
+                    return;
+            }
+
             try
             {
                 await _server.ConnectAsync(SelectedContact.IPEndPoint);
@@ -238,15 +285,15 @@ namespace CNLab3_Messenger.GUI
             }
             catch
             {
-                MessageBox.Show("Error connecting.");// TODO delete
+                MessageBox.Show($"Error connecting to {SelectedContact.IPEndPoint}.");
             }
         }
 
         private async void SendMessageAsync()
         {
-            if (SelectedContact is null)
+            if (SelectedContact is null || InputedMessage.Length == 0)
                 return;
-            // TODO not send in input is empty
+
             string message = InputedMessage;
             InputedMessage = "";
 
@@ -261,7 +308,7 @@ namespace CNLab3_Messenger.GUI
             }
             catch
             {
-                MessageBox.Show("Error sending message.");// TODO delete
+                MessageBox.Show($"Error sending message to {SelectedContact.IPEndPoint}.");
             }
         }
 
@@ -297,7 +344,7 @@ namespace CNLab3_Messenger.GUI
                     }
                     catch
                     {
-                        MessageBox.Show("Error sending image message.");// TODO delete
+                        MessageBox.Show($"Error sending image to {SelectedContact.IPEndPoint}.");
                     }
                 }
             }
@@ -321,22 +368,25 @@ namespace CNLab3_Messenger.GUI
                     }
                     try
                     {
-                        await _server.SendFileAccessAsync(SelectedContact.IPEndPoint, dialog.FileName, (int)fileSize);
-                        SelectedContact.Messages.Add(new SendFileMsgViewModel(this)
+                        string accessCode = await _server.SendFileAccessAsync(SelectedContact.IPEndPoint, dialog.FileName, (int)fileSize);
+                        var sendFileMsg = new SendFileMsgViewModel(this, accessCode)
                         {
                             FileName = dialog.FileName,
                             FileSize = (int)fileSize
-                        });
+                        };
+                        _accessCodeToSendFileMsg.Add(accessCode, sendFileMsg);
+                        SelectedContact.Messages.Add(sendFileMsg);
                     }
                     catch
                     {
-                        MessageBox.Show("Error sending file access.");// TODO delete
+                        MessageBox.Show($"Error sending file to {SelectedContact.IPEndPoint}.");
                     }
                 }
             }
         }
 
-        private async void ReceiveFileAsync(ReceiveFileMsgViewModel msg, CancellationToken token)
+        private async void ReceiveFileAsync(ReceiveFileMsgViewModel msg,
+            CancellationToken token, Action<double> progressCallback)
         {
             if (SelectedContact is null)
                 return;
@@ -349,19 +399,31 @@ namespace CNLab3_Messenger.GUI
                 {
                     try
                     {
+                        msg.OnStarted();
                         await _server.ReceiveFileAsync(SelectedContact.IPEndPoint, dialog.FileName, 
-                            msg.AccessCode, msg.FileSize, token, progress =>
-                            {
-                                if (msg.DispatchStatus is FileMsgViewModel.InProgressDispatchStatus status)
-                                    status.Progress = progress;
-                            });
+                            msg.AccessCode, msg.FileSize, token, progressCallback);
+                        msg.OnDoneSuccessfully();
                     }
-                    catch
+                    catch (TaskCanceledException)
                     {
-                        MessageBox.Show("Error downloading file.");// TODO delete
+                        msg.OnCanceled();
+                    }
+                    catch (Exception e)
+                    {
+                        msg.OnDoneWithError();
                     }
                 }
             }
+        }
+
+        private void BlockFileAccess(string accessCode)
+        {
+            _server.BlockFileAccess(accessCode);
+        }
+
+        private void CancelFileSending(string accessCode)
+        {
+            _server.CancelFileSending(accessCode);
         }
     }
 }
