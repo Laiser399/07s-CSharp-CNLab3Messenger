@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:gui="clr-namespace:CNLab3_Messenger.GUI">
-    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+FileMsgViewModel+InProgressDispatchStatus}">
+    <DataTemplate DataType="{x:Type gui:MainWindowVM+FileMsgVM+InProgressDispatchStatus}">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -14,11 +14,11 @@
         </Grid>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+FileMsgViewModel+DoneDispatchStatus}">
+    <DataTemplate DataType="{x:Type gui:MainWindowVM+FileMsgVM+DoneDispatchStatus}">
         <TextBlock VerticalAlignment="Center" Margin="12 0 0 0" Text="{Binding Text}"/>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+SendFileMsgViewModel+WaitDispatchStatus}">
+    <DataTemplate DataType="{x:Type gui:MainWindowVM+SendFileMsgVM+WaitDispatchStatus}">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -30,7 +30,7 @@
         </Grid>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+ReceiveFileMsgViewModel+WaitDispatchStatus}">
+    <DataTemplate DataType="{x:Type gui:MainWindowVM+ReceiveFileMsgVM+WaitDispatchStatus}">
         <Button Content="Download" VerticalAlignment="Center" Margin="12 0 0 0" Command="{Binding DownloadFileCmd}"/>
     </DataTemplate>
     

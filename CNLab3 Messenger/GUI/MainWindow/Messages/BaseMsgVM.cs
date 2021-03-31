@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CNLab3_Messenger.GUI
 {
-    public abstract class BaseMsgViewModel : BaseViewModel
+    public abstract class BaseMsgVM : BaseViewModel
     {
         private bool _isMyMessage = true;
         public virtual bool IsMyMessage

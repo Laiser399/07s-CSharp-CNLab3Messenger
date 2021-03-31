@@ -18,7 +18,7 @@ namespace CNLab3_Messenger.GUI
 
         public int Port { get; private set; } = IPEndPoint.MinPort;
 
-        private AddContactDialogViewModel _viewModel = new AddContactDialogViewModel();
+        private AddContactDialogVM _viewModel = new AddContactDialogVM();
 
         public AddContactDialog()
         {

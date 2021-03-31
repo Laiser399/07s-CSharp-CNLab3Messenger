@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CNLab3_Messenger.GUI
 {
-    public class TextMsgViewModel : BaseMsgViewModel
+    public class TextMsgVM : BaseMsgVM
     {
         private string _text = "";
         public string Text

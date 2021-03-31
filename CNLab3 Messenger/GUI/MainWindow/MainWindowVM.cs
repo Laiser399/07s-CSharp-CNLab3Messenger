@@ -17,7 +17,7 @@ using System.Threading;
 namespace CNLab3_Messenger.GUI
 {
     // TODO GLOBAL remove ports from brandmauer, router
-    public partial class MainWindowViewModel : BaseViewModel
+    public partial class MainWindowVM : BaseViewModel
     {
         private int _port = 0;
 
@@ -35,12 +35,12 @@ namespace CNLab3_Messenger.GUI
         public RelayCommand RemoveContactCmd
             => _removeContactCmd ?? (_removeContactCmd = new RelayCommand(_ => RemoveContact()));
 
-        private ObservableCollection<ContactViewModel> _contacts;
-        public ObservableCollection<ContactViewModel> Contacts
-            => _contacts ?? (_contacts = new ObservableCollection<ContactViewModel>());
+        private ObservableCollection<ContactVM> _contacts;
+        public ObservableCollection<ContactVM> Contacts
+            => _contacts ?? (_contacts = new ObservableCollection<ContactVM>());
 
-        private ContactViewModel _selectedContact;
-        public ContactViewModel SelectedContact
+        private ContactVM _selectedContact;
+        public ContactVM SelectedContact
         {
             get => _selectedContact;
             set
@@ -79,18 +79,21 @@ namespace CNLab3_Messenger.GUI
 
         #endregion
 
+        private Window _window;
         private GovnoServer _server;
         private IPAddress _ipAddress;
-        private Dictionary<string, SendFileMsgViewModel> _accessCodeToSendFileMsg = 
-            new Dictionary<string, SendFileMsgViewModel>();
+        private Dictionary<string, SendFileMsgVM> _accessCodeToSendFileMsg = 
+            new Dictionary<string, SendFileMsgVM>();
 
-        public MainWindowViewModel(int port)
+        public MainWindowVM(Window window, int port)
         {
+            _window = window;
+
             _port = port;
             InitIpAddress();
             InitServer();
 
-            MakeTest1();
+            // MakeTest1();
         }
 
         private void InitIpAddress()
@@ -117,7 +120,7 @@ namespace CNLab3_Messenger.GUI
                     contact.Connected = true;
                 else
                 {
-                    contact = new ContactViewModel(args.SenderIPPoint)
+                    contact = new ContactVM(args.SenderIPPoint)
                     {
                         Connected = true
                     };
@@ -130,7 +133,7 @@ namespace CNLab3_Messenger.GUI
             {
                 if (TryFindContact(args.SenderIPPoint, out var contact))
                 {
-                    contact.Messages.Add(new TextMsgViewModel
+                    contact.Messages.Add(new TextMsgVM
                     {
                         IsMyMessage = false,
                         Text = args.Text
@@ -141,7 +144,7 @@ namespace CNLab3_Messenger.GUI
             {
                 if (TryFindContact(args.SenderIPPoint, out var contact))
                 {
-                    contact.Messages.Add(new ImageMsgViewModel
+                    contact.Messages.Add(new ImageMsgVM
                     {
                         IsMyMessage = false,
                         FileName = args.FileName,
@@ -153,7 +156,7 @@ namespace CNLab3_Messenger.GUI
             {
                 if (TryFindContact(args.SenderIPPoint, out var contact))
                 {
-                    contact.Messages.Add(new ReceiveFileMsgViewModel(this, args.AccessCode)
+                    contact.Messages.Add(new ReceiveFileMsgVM(this, args.AccessCode)
                     {
                         FileName = args.FileName,
                         FileSize = args.FileSize
@@ -207,7 +210,7 @@ namespace CNLab3_Messenger.GUI
             if (_port == 60399)
             {
                 IPEndPoint point = new IPEndPoint(IPAddress.Parse("77.37.245.90"), 60400);
-                var contact = new ContactViewModel(point);
+                var contact = new ContactVM(point);
                 Contacts.Add(contact);
                 await _server.ConnectAsync(point);
                 contact.Connected = true;
@@ -217,13 +220,17 @@ namespace CNLab3_Messenger.GUI
 
         private void AddContact()
         {
-            var dlg = new AddContactDialog();
+            var dlg = new AddContactDialog()
+            {
+                Owner = _window
+            };
+
             if (dlg.ShowDialog(out IPAddress ipAddres, out int port))
             {
                 if (TryFindContact(ipAddres, port, out var _))
                     MessageBox.Show($"Contact with ip address {ipAddres} and port {port} already exists.");
                 else
-                    Contacts.Add(new ContactViewModel(ipAddres, port));
+                    Contacts.Add(new ContactVM(ipAddres, port));
             }
         }
 
@@ -243,15 +250,15 @@ namespace CNLab3_Messenger.GUI
             _server.Disconnect(contact.IPEndPoint);
         }
 
-        private bool TryFindContact(IPAddress ipAddress, int port, out ContactViewModel result)
+        private bool TryFindContact(IPAddress ipAddress, int port, out ContactVM result)
         {
             IPEndPoint point = new IPEndPoint(ipAddress, port);
             return TryFindContact(point, out result);
         }
 
-        private bool TryFindContact(IPEndPoint point, out ContactViewModel result)
+        private bool TryFindContact(IPEndPoint point, out ContactVM result)
         {
-            foreach (ContactViewModel contact in Contacts)
+            foreach (ContactVM contact in Contacts)
             {
                 if (contact.IPEndPoint.Equals(point))
                 {
@@ -300,7 +307,7 @@ namespace CNLab3_Messenger.GUI
             try
             {
                 await _server.SendTextMessageAsync(SelectedContact.IPEndPoint, message);
-                SelectedContact.Messages.Add(new TextMsgViewModel
+                SelectedContact.Messages.Add(new TextMsgVM
                 {
                     IsMyMessage = true,
                     Text = message
@@ -335,7 +342,7 @@ namespace CNLab3_Messenger.GUI
                     {
                         await _server.SendImageAsync(SelectedContact.IPEndPoint, 
                             Path.GetFileName(dialog.FileName), imageData);
-                        SelectedContact.Messages.Add(new ImageMsgViewModel
+                        SelectedContact.Messages.Add(new ImageMsgVM
                         {
                             IsMyMessage = true,
                             FileName = dialog.FileName,
@@ -369,7 +376,7 @@ namespace CNLab3_Messenger.GUI
                     try
                     {
                         string accessCode = await _server.SendFileAccessAsync(SelectedContact.IPEndPoint, dialog.FileName, (int)fileSize);
-                        var sendFileMsg = new SendFileMsgViewModel(this, accessCode)
+                        var sendFileMsg = new SendFileMsgVM(this, accessCode)
                         {
                             FileName = dialog.FileName,
                             FileSize = (int)fileSize
@@ -385,7 +392,7 @@ namespace CNLab3_Messenger.GUI
             }
         }
 
-        private async void ReceiveFileAsync(ReceiveFileMsgViewModel msg,
+        private async void ReceiveFileAsync(ReceiveFileMsgVM msg,
             CancellationToken token, Action<double> progressCallback)
         {
             if (SelectedContact is null)
@@ -408,7 +415,7 @@ namespace CNLab3_Messenger.GUI
                     {
                         msg.OnCanceled();
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         msg.OnDoneWithError();
                     }

@@ -19,12 +19,12 @@ namespace CNLab3_Messenger.GUI
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainWindowViewModel _viewModel;
+        private MainWindowVM _viewModel;
 
         public MainWindow(int port)
         {
             InitializeComponent();
-            _viewModel = new MainWindowViewModel(port);
+            _viewModel = new MainWindowVM(this, port);
             DataContext = _viewModel;
         }
 

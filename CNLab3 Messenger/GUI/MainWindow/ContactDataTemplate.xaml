@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:gui="clr-namespace:CNLab3_Messenger.GUI">
-    <DataTemplate DataType="{x:Type gui:ContactViewModel}">
+    <DataTemplate DataType="{x:Type gui:ContactVM}">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>

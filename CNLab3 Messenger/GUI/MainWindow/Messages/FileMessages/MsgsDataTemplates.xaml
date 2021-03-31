@@ -33,7 +33,7 @@
         </Style.Triggers>
     </Style>
 
-    <DataTemplate DataType="{x:Type gui:TextMsgViewModel}">
+    <DataTemplate DataType="{x:Type gui:TextMsgVM}">
         <Border Style="{StaticResource MsgBorderStyle}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -47,7 +47,7 @@
         </Border>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gui:ImageMsgViewModel}">
+    <DataTemplate DataType="{x:Type gui:ImageMsgVM}">
         <Border Style="{StaticResource MsgBorderStyle}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -62,7 +62,7 @@
         </Border>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+ReceiveFileMsgViewModel}">
+    <DataTemplate DataType="{x:Type gui:MainWindowVM+ReceiveFileMsgVM}">
         <Border Style="{StaticResource MsgBorderStyle}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -82,7 +82,7 @@
         </Border>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type gui:MainWindowViewModel+SendFileMsgViewModel}">
+    <DataTemplate DataType="{x:Type gui:MainWindowVM+SendFileMsgVM}">
         <Border Style="{StaticResource MsgBorderStyle}">
             <Grid>
                 <Grid.RowDefinitions>

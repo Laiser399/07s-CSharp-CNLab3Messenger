@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CNLab3_Messenger.GUI
 {
-    class AddContactDialogViewModel : BaseViewModel
+    class AddContactDialogVM : BaseViewModel
     {
         private string _ipAddress = "";
         public string IpAddress

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CNLab3_Messenger.GUI
 {
-    public partial class MainWindowViewModel : BaseViewModel
+    public partial class MainWindowVM : BaseViewModel
     {
-        public partial class SendFileMsgViewModel : FileMsgViewModel
+        public partial class SendFileMsgVM : FileMsgVM
         {
             #region Bindings
 
@@ -20,9 +20,9 @@ namespace CNLab3_Messenger.GUI
 
             #endregion
 
-            private MainWindowViewModel _owner;
+            private MainWindowVM _owner;
 
-            public SendFileMsgViewModel(MainWindowViewModel owner, string accessCode) : base(accessCode)
+            public SendFileMsgVM(MainWindowVM owner, string accessCode) : base(accessCode)
             {
                 _owner = owner;
                 DispatchStatus = new WaitDispatchStatus(this);

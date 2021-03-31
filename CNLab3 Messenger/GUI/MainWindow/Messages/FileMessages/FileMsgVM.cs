@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CNLab3_Messenger.GUI
 {
-    public partial class MainWindowViewModel : BaseViewModel
+    public partial class MainWindowVM : BaseViewModel
     {
-        public abstract partial class FileMsgViewModel : BaseMsgViewModel
+        public abstract partial class FileMsgVM : BaseMsgVM
         {
             #region Bindings
 
@@ -67,7 +67,7 @@ namespace CNLab3_Messenger.GUI
 
             public string AccessCode { get; private set; }
 
-            protected FileMsgViewModel(string accessCode)
+            protected FileMsgVM(string accessCode)
             {
                 AccessCode = accessCode;
             }

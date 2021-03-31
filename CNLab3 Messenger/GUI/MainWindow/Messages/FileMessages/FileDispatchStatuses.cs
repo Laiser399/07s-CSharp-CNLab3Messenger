@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CNLab3_Messenger.GUI
 {
-    public partial class MainWindowViewModel : BaseViewModel
+    public partial class MainWindowVM : BaseViewModel
     {
-        public abstract partial class FileMsgViewModel : BaseMsgViewModel
+        public abstract partial class FileMsgVM : BaseMsgVM
         {
             public class InProgressDispatchStatus : BaseViewModel
             {
@@ -33,9 +33,9 @@ namespace CNLab3_Messenger.GUI
 
                 #endregion
 
-                private FileMsgViewModel _owner;
+                private FileMsgVM _owner;
 
-                public InProgressDispatchStatus(FileMsgViewModel owner)
+                public InProgressDispatchStatus(FileMsgVM owner)
                 {
                     _owner = owner;
                 }
@@ -56,7 +56,7 @@ namespace CNLab3_Messenger.GUI
             }
         }
 
-        public partial class SendFileMsgViewModel : FileMsgViewModel
+        public partial class SendFileMsgVM : FileMsgVM
         {
             public class WaitDispatchStatus
             {
@@ -66,9 +66,9 @@ namespace CNLab3_Messenger.GUI
                 public RelayCommand CancelSendingCmd
                     => _cancelSendingCmd ?? (_cancelSendingCmd = new RelayCommand(_ => _owner.BlockFileAccess()));
 
-                private SendFileMsgViewModel _owner;
+                private SendFileMsgVM _owner;
 
-                public WaitDispatchStatus(SendFileMsgViewModel owner)
+                public WaitDispatchStatus(SendFileMsgVM owner)
                 {
                     _owner = owner;
                 }
@@ -76,7 +76,7 @@ namespace CNLab3_Messenger.GUI
 
         }
 
-        public partial class ReceiveFileMsgViewModel : FileMsgViewModel
+        public partial class ReceiveFileMsgVM : FileMsgVM
         {
             public class WaitDispatchStatus
             {
@@ -84,9 +84,9 @@ namespace CNLab3_Messenger.GUI
                 public RelayCommand DownloadFileCmd
                     => _downloadFileCmd ?? (_downloadFileCmd = new RelayCommand(_ => _owner.ReceiveFile()));
 
-                private ReceiveFileMsgViewModel _owner;
+                private ReceiveFileMsgVM _owner;
 
-                public WaitDispatchStatus(ReceiveFileMsgViewModel owner)
+                public WaitDispatchStatus(ReceiveFileMsgVM owner)
                 {
                     _owner = owner;
                 }

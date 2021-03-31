@@ -85,23 +85,23 @@
     <Compile Include="GUI\AddContactDialog\AddContactDialog.xaml.cs">
       <DependentUpon>AddContactDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="GUI\AddContactDialog\AddContactDialogViewModel.cs" />
+    <Compile Include="GUI\AddContactDialog\AddContactDialogVM.cs" />
     <Compile Include="GUI\BaseViewModel.cs" />
-    <Compile Include="GUI\MainWindow\ContactViewModel.cs" />
+    <Compile Include="GUI\MainWindow\ContactVM.cs" />
     <Compile Include="GUI\MainWindow\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="GUI\MainWindow\Messages\BaseMsgViewModel.cs" />
+    <Compile Include="GUI\MainWindow\Messages\BaseMsgVM.cs" />
     <Compile Include="GUI\MainWindow\Messages\FileMessages\FileDispatchStatuses.cs" />
-    <Compile Include="GUI\MainWindow\Messages\FileMessages\FileMsgViewModel.cs" />
-    <Compile Include="GUI\MainWindow\Messages\ImageMsgViewModel.cs" />
-    <Compile Include="GUI\MainWindow\Messages\FileMessages\ReceiveFileMsgViewModel.cs" />
-    <Compile Include="GUI\MainWindow\Messages\FileMessages\SendFileMsgViewModel.cs" />
-    <Compile Include="GUI\MainWindow\Messages\TextMsgViewModel.cs" />
+    <Compile Include="GUI\MainWindow\Messages\FileMessages\FileMsgVM.cs" />
+    <Compile Include="GUI\MainWindow\Messages\ImageMsgVM.cs" />
+    <Compile Include="GUI\MainWindow\Messages\FileMessages\ReceiveFileMsgVM.cs" />
+    <Compile Include="GUI\MainWindow\Messages\FileMessages\SendFileMsgVM.cs" />
+    <Compile Include="GUI\MainWindow\Messages\TextMsgVM.cs" />
     <Compile Include="SilentCryptoStream.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GUI\MainWindow\MainWindowViewModel.cs" />
+    <Compile Include="GUI\MainWindow\MainWindowVM.cs" />
     <Compile Include="GUI\RelayCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -145,7 +145,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="GUI\MainWindow\Messages\FileMessages\FileDispatchStatusesDataTemplates.xaml">
+    <Page Include="GUI\MainWindow\Messages\FileMessages\FileDispatchStatuses.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

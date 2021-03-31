@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CNLab3_Messenger.GUI
 {
-    public class ContactViewModel : BaseViewModel
+    public class ContactVM : BaseViewModel
     {
         #region Bindings
 
@@ -31,18 +31,18 @@ namespace CNLab3_Messenger.GUI
         public IPEndPoint IPEndPoint => _ipEndPoint;
         public string AddressStrRepr => IPEndPoint.ToString();
 
-        private ObservableCollection<BaseMsgViewModel> _messages;
-        public ObservableCollection<BaseMsgViewModel> Messages
-            => _messages ?? (_messages = new ObservableCollection<BaseMsgViewModel>());
+        private ObservableCollection<BaseMsgVM> _messages;
+        public ObservableCollection<BaseMsgVM> Messages
+            => _messages ?? (_messages = new ObservableCollection<BaseMsgVM>());
 
         #endregion
 
-        public ContactViewModel(IPAddress ipAddress, int port)
+        public ContactVM(IPAddress ipAddress, int port)
         {
             _ipEndPoint = new IPEndPoint(ipAddress, port);
         }
 
-        public ContactViewModel(IPEndPoint point)
+        public ContactVM(IPEndPoint point)
         {
             _ipEndPoint = point;
         }

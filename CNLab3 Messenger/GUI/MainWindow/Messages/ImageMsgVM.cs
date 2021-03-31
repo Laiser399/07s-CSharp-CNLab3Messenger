@@ -8,7 +8,7 @@ using System.Windows.Media.Imaging;
 
 namespace CNLab3_Messenger.GUI
 {
-    class ImageMsgViewModel : BaseMsgViewModel
+    class ImageMsgVM : BaseMsgVM
     {
         private string _fileName = "";
         public string FileName

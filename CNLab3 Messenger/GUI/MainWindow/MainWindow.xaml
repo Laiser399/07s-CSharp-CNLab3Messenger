@@ -11,7 +11,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Messages/FileMessages/FileDispatchStatusesDataTemplates.xaml"/>
+                <ResourceDictionary Source="Messages/FileMessages/FileDispatchStatuses.xaml"/>
                 <ResourceDictionary Source="Messages/FileMessages/MsgsDataTemplates.xaml"/>
                 <ResourceDictionary Source="ContactDataTemplate.xaml"/>
             </ResourceDictionary.MergedDictionaries>
