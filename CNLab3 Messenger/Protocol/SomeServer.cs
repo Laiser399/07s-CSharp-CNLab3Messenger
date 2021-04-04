@@ -12,12 +12,12 @@ using Newtonsoft.Json.Linq;
 
 namespace CNLab3_Messenger.Protocol
 {
-    class GovnoCryptoData
+    class SomeCryptoData
     {
         public byte[] IV { get; private set; }
         public byte[] Key { get; private set; }
 
-        public GovnoCryptoData(byte[] iv, byte[] key)
+        public SomeCryptoData(byte[] iv, byte[] key)
         {
             IV = iv;
             Key = key;
@@ -26,7 +26,7 @@ namespace CNLab3_Messenger.Protocol
 
     class NotConnectedException : Exception { }
 
-    class GovnoServer
+    class SomeServer
     {
         public static readonly int MaxFileSize = 314_572_800;
         public static readonly int MaxImageSize = 10_485_760;
@@ -45,14 +45,14 @@ namespace CNLab3_Messenger.Protocol
         private TcpListener _listener;
         private IPEndPoint _serverIPEndPoint;
         private bool _isStarted = false;
-        private Dictionary<IPEndPoint, GovnoCryptoData> _connected = new Dictionary<IPEndPoint, GovnoCryptoData>();
+        private Dictionary<IPEndPoint, SomeCryptoData> _connected = new Dictionary<IPEndPoint, SomeCryptoData>();
         private Dictionary<string, string> _accessCodeToFile = new Dictionary<string, string>();
         private Dictionary<string, CancellationTokenSource> _cancellationTokens =
             new Dictionary<string, CancellationTokenSource>();
 
-        public GovnoServer(IPAddress ipAddress, int port) : this(new IPEndPoint(ipAddress, port)) { }
+        public SomeServer(IPAddress ipAddress, int port) : this(new IPEndPoint(ipAddress, port)) { }
 
-        public GovnoServer(IPEndPoint serverIPEndPoint)
+        public SomeServer(IPEndPoint serverIPEndPoint)
         {
             _serverIPEndPoint = serverIPEndPoint;
             _listener = new TcpListener(IPAddress.Any, serverIPEndPoint.Port);
@@ -127,7 +127,7 @@ namespace CNLab3_Messenger.Protocol
             OnConnected?.Invoke(this, new ConnectedEventArgs { SenderIPPoint = sender });
             if (_connected.ContainsKey(sender))
                 _connected.Remove(sender);
-            _connected.Add(sender, new GovnoCryptoData(aes.IV, aes.Key));
+            _connected.Add(sender, new SomeCryptoData(aes.IV, aes.Key));
         }
 
         private async Task OnMessageAsync(IPEndPoint sender, NetworkStream stream)
@@ -254,7 +254,7 @@ namespace CNLab3_Messenger.Protocol
 
                 if (_connected.ContainsKey(receiver))
                     _connected.Remove(receiver);
-                _connected.Add(receiver, new GovnoCryptoData(IV, key));
+                _connected.Add(receiver, new SomeCryptoData(IV, key));
             }
         }
 
@@ -403,7 +403,7 @@ namespace CNLab3_Messenger.Protocol
             }
         }
 
-        private async Task<byte[]> DecryptBytesAsync(byte[] data, int length, GovnoCryptoData cryptoData)
+        private async Task<byte[]> DecryptBytesAsync(byte[] data, int length, SomeCryptoData cryptoData)
         {
             using (CryptoStream crStream = new CryptoStream(new MemoryStream(data),
                 CreateDecryptor(cryptoData), CryptoStreamMode.Read))
@@ -412,7 +412,7 @@ namespace CNLab3_Messenger.Protocol
             }
         }
 
-        private async Task<byte[]> EncryptAsync(byte[] data, GovnoCryptoData cryptoData)
+        private async Task<byte[]> EncryptAsync(byte[] data, SomeCryptoData cryptoData)
         {
             using (MemoryStream mStream = new MemoryStream())
             {
@@ -426,7 +426,7 @@ namespace CNLab3_Messenger.Protocol
             }
         }
 
-        private async Task<JObject> DecryptJObjectAsync(byte[] data, GovnoCryptoData cryptoData)
+        private async Task<JObject> DecryptJObjectAsync(byte[] data, SomeCryptoData cryptoData)
         {
             using (CryptoStream crStream = new CryptoStream(new MemoryStream(data),
                 CreateDecryptor(cryptoData), CryptoStreamMode.Read))
@@ -435,7 +435,7 @@ namespace CNLab3_Messenger.Protocol
             }
         }
 
-        private async Task<byte[]> EncryptAsync(JToken token, GovnoCryptoData cryptoData)
+        private async Task<byte[]> EncryptAsync(JToken token, SomeCryptoData cryptoData)
         {
             using (MemoryStream mStream = new MemoryStream())
             {
@@ -450,7 +450,7 @@ namespace CNLab3_Messenger.Protocol
         }
 
         // static methods
-        private static ICryptoTransform CreateEncryptor(GovnoCryptoData cryptoData)
+        private static ICryptoTransform CreateEncryptor(SomeCryptoData cryptoData)
         {
             Aes aes = new AesCryptoServiceProvider()
             {
@@ -460,7 +460,7 @@ namespace CNLab3_Messenger.Protocol
             return aes.CreateEncryptor();
         }
         
-        private static ICryptoTransform CreateDecryptor(GovnoCryptoData cryptoData)
+        private static ICryptoTransform CreateDecryptor(SomeCryptoData cryptoData)
         {
             Aes aes = new AesCryptoServiceProvider()
             {

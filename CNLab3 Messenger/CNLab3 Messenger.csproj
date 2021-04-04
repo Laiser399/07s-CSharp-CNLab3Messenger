@@ -81,7 +81,7 @@
     </Compile>
     <Compile Include="Extensions.cs" />
     <Compile Include="Protocol\EventArgs.cs" />
-    <Compile Include="Protocol\GovnoServer.cs" />
+    <Compile Include="Protocol\SomeServer.cs" />
     <Compile Include="GUI\AddContactDialog\AddContactDialog.xaml.cs">
       <DependentUpon>AddContactDialog.xaml</DependentUpon>
     </Compile>

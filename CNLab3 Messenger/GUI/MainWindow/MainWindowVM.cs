@@ -80,7 +80,7 @@ namespace CNLab3_Messenger.GUI
         #endregion
 
         private Window _window;
-        private GovnoServer _server;
+        private SomeServer _server;
         private IPAddress _ipAddress;
         private Dictionary<string, SendFileMsgVM> _accessCodeToSendFileMsg = 
             new Dictionary<string, SendFileMsgVM>();
@@ -113,7 +113,7 @@ namespace CNLab3_Messenger.GUI
 
         private void InitServer()
         {
-            _server = new GovnoServer(_ipAddress, _port);
+            _server = new SomeServer(_ipAddress, _port);
             _server.OnConnected += (_, args) =>
             {
                 if (TryFindContact(args.SenderIPPoint, out var contact))
@@ -331,9 +331,9 @@ namespace CNLab3_Messenger.GUI
                 if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
                 {
                     long fileSize = new FileInfo(dialog.FileName).Length;
-                    if (fileSize > GovnoServer.MaxImageSize)
+                    if (fileSize > SomeServer.MaxImageSize)
                     {
-                        MessageBox.Show($"Max size of file is {GovnoServer.MaxImageSize / 1024 / 1024} MB.");
+                        MessageBox.Show($"Max size of file is {SomeServer.MaxImageSize / 1024 / 1024} MB.");
                         return;
                     }
 
@@ -368,9 +368,9 @@ namespace CNLab3_Messenger.GUI
                 if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
                 {
                     long fileSize = new FileInfo(dialog.FileName).Length;
-                    if (fileSize > GovnoServer.MaxFileSize)
+                    if (fileSize > SomeServer.MaxFileSize)
                     {
-                        MessageBox.Show($"Max size of file is {GovnoServer.MaxFileSize / 1024 / 1024} MB.");
+                        MessageBox.Show($"Max size of file is {SomeServer.MaxFileSize / 1024 / 1024} MB.");
                         return;
                     }
                     try
