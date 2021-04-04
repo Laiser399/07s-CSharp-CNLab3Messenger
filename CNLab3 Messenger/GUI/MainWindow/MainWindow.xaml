@@ -5,11 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CNLab3_Messenger"
         xmlns:gui="clr-namespace:CNLab3_Messenger.GUI"
+        xmlns:conv="clr-namespace:CNLab3_Messenger.GUI.Converters"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
+            <conv:TrueToCollapseConverter x:Key="trueToCollapseConverter"/>
+            <conv:InverseBooleanConverter x:Key="inverseBooleanConverter"/>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Messages/FileMessages/FileDispatchStatuses.xaml"/>
                 <ResourceDictionary Source="Messages/FileMessages/MsgsDataTemplates.xaml"/>
@@ -22,18 +27,35 @@
             <RowDefinition Height="auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="IP address:"/>
-            <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding IPAddress, Mode=OneWay}"/>
-            <TextBlock Grid.Column="2" Text="Port:"/>
-            <TextBox Grid.Column="3" IsReadOnly="True" Text="{Binding Port, Mode=OneWay}"/>
-        </Grid>
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <StackPanel Grid.Column="0" Orientation="Horizontal"
+                        Margin="0 0 12 0">
+                <TextBlock Text="IP address:"/>
+                <TextBox IsReadOnly="True" 
+                         MinWidth="120"
+                         Text="{Binding IPAddress, Mode=OneWay}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" Text="Port:"/>
+                <TextBox MinWidth="60px"
+                         VerticalAlignment="Center"
+                         IsReadOnly="{Binding IsEditPort, Converter={StaticResource inverseBooleanConverter}}"
+                         Text="{Binding Port}"/>
+
+                <Button Padding="6 0"
+                        Visibility="{Binding IsEditPort, Converter={StaticResource trueToCollapseConverter}}"
+                        Content="E"
+                        Command="{Binding EditPortCmd}"/>
+                <Button Padding="2 0"
+                        Visibility="{Binding IsEditPort, Converter={StaticResource booleanToVisibilityConverter}}"
+                        Content="Ok"
+                        Command="{Binding ApplyPortCmd}"/>
+                <Button Padding="6 0"
+                        Visibility="{Binding IsEditPort, Converter={StaticResource booleanToVisibilityConverter}}"
+                        Content="C"
+                        Command="{Binding CancelEditPortCmd}"/>
+            </StackPanel>
+        </StackPanel>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>

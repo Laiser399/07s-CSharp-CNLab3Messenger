@@ -44,11 +44,13 @@ namespace CNLab3_Messenger.Protocol
 
         private TcpListener _listener;
         private IPEndPoint _serverIPEndPoint;
-        private bool _isStarted = false;
+        public int Port => _serverIPEndPoint.Port;
         private Dictionary<IPEndPoint, SomeCryptoData> _connected = new Dictionary<IPEndPoint, SomeCryptoData>();
         private Dictionary<string, string> _accessCodeToFile = new Dictionary<string, string>();
         private Dictionary<string, CancellationTokenSource> _cancellationTokens =
             new Dictionary<string, CancellationTokenSource>();
+
+        private Task _startTask;
 
         public SomeServer(IPAddress ipAddress, int port) : this(new IPEndPoint(ipAddress, port)) { }
 
@@ -58,26 +60,51 @@ namespace CNLab3_Messenger.Protocol
             _listener = new TcpListener(IPAddress.Any, serverIPEndPoint.Port);
         }
 
-        public async void Start()
+        /// <exception cref="ArgumentException">Wrong port</exception>
+        public async Task ChangePortAsync(int port)
         {
-            if (_isStarted)
-                return;
-            _isStarted = true;
+            if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
+                throw new ArgumentException("Wrong port.");
 
+            await StopAsync();
+            _serverIPEndPoint.Port = port;
+            _listener = new TcpListener(IPAddress.Any, _serverIPEndPoint.Port);
+            Start();
+        }
+
+        public void Start()
+        {
+            if (_startTask is object)
+                return;
+            _startTask = StartAsync();
+        }
+
+        private async Task StartAsync()
+        {
             _listener.Start();
-            
-            while (_isStarted)
+
+            while (true)
             {
-                TcpClient client = await _listener.AcceptTcpClientAsync();
-                OnClientAcceptedAsync(client);
+                try
+                {
+                    TcpClient client = await _listener.AcceptTcpClientAsync();
+                    OnClientAcceptedAsync(client);
+                }
+                catch
+                {
+                    break;
+                }
             }
         }
 
-        public void Stop()
+        private async Task StopAsync()
         {
-            if (!_isStarted)
+            if (_startTask is null)
                 return;
-            _isStarted = false;
+
+            _listener.Stop();
+            await _startTask;
+            _startTask = null;
         }
 
         private async void OnClientAcceptedAsync(TcpClient client)

@@ -17,7 +17,7 @@ namespace CNLab3_Messenger
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            var wnd = new GUI.MainWindow(60399);
+            var wnd = new GUI.MainWindow(60404);
             wnd.Show();
             wnd.Left = 100;
             //wnd.ShowDialog();

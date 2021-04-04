@@ -19,13 +19,44 @@ namespace CNLab3_Messenger.GUI
     // TODO GLOBAL remove ports from brandmauer, router
     public partial class MainWindowVM : BaseViewModel
     {
-        private int _port = 0;
-
         #region Bindings
 
         public IPAddress IPAddress => _ipAddress;
 
-        public int Port => _port;
+        private string _port = "";
+        public string Port
+        {
+            get => _port;
+            set
+            {
+                _port = value;
+                NotifyPropChanged(nameof(Port));
+            }
+        }
+
+        private bool _isEditPort;
+        public bool IsEditPort
+        {
+            get => _isEditPort;
+            set
+            {
+                _isEditPort = value;
+                NotifyPropChanged(nameof(IsEditPort));
+            }
+        }
+
+        private RelayCommand _editPortCmd;
+        public RelayCommand EditPortCmd
+            => _editPortCmd ?? (_editPortCmd = new RelayCommand(_ => IsEditPort = true));
+
+        private RelayCommand _applyPortCmd;
+        public RelayCommand ApplyPortCmd
+            => _applyPortCmd ?? (_applyPortCmd = new RelayCommand(_ => ApplyPort()));
+
+        private RelayCommand _cancelEditPortCmd;
+        public RelayCommand CancelEditPortCmd
+            => _cancelEditPortCmd ?? (_cancelEditPortCmd = new RelayCommand(_ => CancelEditPort()));
+
 
         private RelayCommand _addContactCmd;
         public RelayCommand AddContactCmd
@@ -88,12 +119,10 @@ namespace CNLab3_Messenger.GUI
         public MainWindowVM(Window window, int port)
         {
             _window = window;
+            Port = port.ToString();
 
-            _port = port;
             InitIpAddress();
-            InitServer();
-
-            // MakeTest1();
+            InitServer(port);
         }
 
         private void InitIpAddress()
@@ -111,9 +140,9 @@ namespace CNLab3_Messenger.GUI
             }
         }
 
-        private void InitServer()
+        private void InitServer(int port)
         {
-            _server = new SomeServer(_ipAddress, _port);
+            _server = new SomeServer(_ipAddress, port);
             _server.OnConnected += (_, args) =>
             {
                 if (TryFindContact(args.SenderIPPoint, out var contact))
@@ -205,17 +234,28 @@ namespace CNLab3_Messenger.GUI
             _server.Start();
         }
 
-        private async void MakeTest1()
+        private async void ApplyPort()
         {
-            if (_port == 60399)
+            if (!int.TryParse(Port, out int port))
             {
-                IPEndPoint point = new IPEndPoint(IPAddress.Parse("77.37.245.90"), 60400);
-                var contact = new ContactVM(point);
-                Contacts.Add(contact);
-                await _server.ConnectAsync(point);
-                contact.Connected = true;
-                SelectedContact = contact;
+                MessageBox.Show("Wrong port format.");
+                return;
             }
+            if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
+            {
+                MessageBox.Show($"Port must be in range from {IPEndPoint.MinPort} to {IPEndPoint.MaxPort}.");
+                return;
+            }
+
+            Port = port.ToString();
+            await _server.ChangePortAsync(port);
+            IsEditPort = false;
+        }
+
+        private void CancelEditPort()
+        {
+            IsEditPort = false;
+            Port = _server.Port.ToString();
         }
 
         private void AddContact()
@@ -290,9 +330,10 @@ namespace CNLab3_Messenger.GUI
                 await _server.ConnectAsync(SelectedContact.IPEndPoint);
                 SelectedContact.Connected = true;
             }
-            catch
+            catch (Exception e)
             {
-                MessageBox.Show($"Error connecting to {SelectedContact.IPEndPoint}.");
+                MessageBox.Show($"Error connecting to {SelectedContact.IPEndPoint}.\n" +
+                    $"Message: {e.Message}");
             }
         }
 
@@ -313,9 +354,10 @@ namespace CNLab3_Messenger.GUI
                     Text = message
                 });
             }
-            catch
+            catch (Exception e)
             {
-                MessageBox.Show($"Error sending message to {SelectedContact.IPEndPoint}.");
+                MessageBox.Show($"Error sending message to {SelectedContact.IPEndPoint}.\n" +
+                    $"Message: {e.Message}");
             }
         }
 

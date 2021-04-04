@@ -80,6 +80,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Extensions.cs" />
+    <Compile Include="GUI\Converters\InverseBooleanConverter.cs" />
+    <Compile Include="GUI\Converters\TrueToCollapseConverter.cs" />
     <Compile Include="Protocol\EventArgs.cs" />
     <Compile Include="Protocol\SomeServer.cs" />
     <Compile Include="GUI\AddContactDialog\AddContactDialog.xaml.cs">
