@@ -290,6 +290,7 @@ namespace CNLab3_Messenger.Protocol
             _connected.Remove(point);
         }
 
+        /// <exception cref="NotConnectedException">Specified receiver is not connected</exception>
         public async Task SendTextMessageAsync(IPEndPoint receiver, string message)
         {
             if (!_connected.ContainsKey(receiver))
